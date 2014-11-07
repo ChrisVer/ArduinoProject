@@ -1,0 +1,1028 @@
+/*********************
+
+Example code for the Adafruit RGB Character LCD Shield and Library
+
+This code displays text on the shield, and also reads the buttons on the keypad.
+When a button is pressed, the backlight changes color.
+
+**********************/
+
+// include the library code:
+#include <Wire.h>
+#include <Adafruit_MCP23017.h>
+#include <Adafruit_RGBLCDShield.h>
+
+// The shield uses the I2C SCL and SDA pins. On classic Arduinos
+// this is Analog 4 and 5 so you can't use those for analogRead() anymore
+// However, you can connect other I2C sensors to the I2C bus and share
+// the I2C bus.
+
+
+Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
+
+// These #defines make it easy to set the backlight color
+#define RED 0x1
+#define YELLOW 0x3
+#define GREEN 0x2
+#define TEAL 0x6
+#define BLUE 0x4
+#define VIOLET 0x5
+#define WHITE 0x7
+
+int SetPoint = 0 ;  //
+int hit = 0 ; 
+int Select = 0 ;
+int Door = 0 ;
+int DefrostTime = 0 ; //tfores ana mera - edo ana posa lepta
+int ManDef = 0;
+
+
+int min = 0 ;
+
+int abc = 0 ;
+
+int mytime = 30;
+//int time2;
+
+ 
+int TempHigh ;
+int TempLow ;
+int Dif;
+int Comp = 0 ;
+int Fan = 0 ;
+
+int tempC;
+int tempPin = 1 ; // lm53 is at A1
+
+int buzzer = 8; //buzzer
+int led = 9;
+
+void setup() 
+  {
+        // Debugging output
+        Serial.begin(9600);
+        // set up the LCD's number of columns and rows: 
+        lcd.begin(16, 2);
+        lcd.setBacklight(WHITE);
+        
+        /*int time = millis();
+        time = millis() - time;*/
+        
+        pinMode(buzzer, OUTPUT); // θέτω ότι το buzzer θα είναι output
+        pinMode(led, OUTPUT); // ομοιως
+        
+        uint8_t i=0;
+                
+        lcd.print("Welcome. . .");
+        delay(2000);
+        lcd.clear();
+        
+        
+    
+  } //void setup 
+
+
+
+void loop() 
+{
+  if (Select == 0)
+  {
+  
+  lcd.clear();
+  lcd.print("Select the");
+  lcd.setCursor(0,1);
+  lcd.print("SetPoint: ");
+  lcd.setCursor(12,1);
+    
+  delay(2000);
+  }  
+   //uint8_t buttons = lcd.readButtons();
+   
+   
+   // ------- Ο Ρ Ι Σ Μ Ο Σ     S E T P O I N T  -------
+   
+   
+   while (Select == 0)  
+   {
+        uint8_t buttons = lcd.readButtons();
+        
+        if (buttons) 
+        {
+            if (buttons & BUTTON_UP) 
+            {
+                lcd.clear();
+                lcd.print("Select the");
+                lcd.setCursor(0,1);
+                lcd.print("SetPoint: ");
+                lcd.setCursor(10,1);
+                SetPoint++; // +1
+                lcd.print(SetPoint);
+                delay(100);
+            }
+            if (buttons & BUTTON_DOWN) 
+            {
+                lcd.clear();
+                lcd.print("Select the");
+                lcd.setCursor(0,1);
+                lcd.print("SetPoint: ");
+                lcd.setCursor(10,1);
+                SetPoint--; // -1
+                lcd.print(SetPoint);
+                delay(100);    
+            }
+             if (buttons & BUTTON_LEFT) 
+            {
+                lcd.clear();
+                lcd.print("Select the");
+                lcd.setCursor(0,1);
+                lcd.print("SetPoint: ");
+                lcd.setCursor(10,1);
+                SetPoint = SetPoint - 10;
+                lcd.print(SetPoint);
+                delay(100);
+            }
+             if (buttons & BUTTON_RIGHT) 
+            {
+                lcd.clear();
+                lcd.print("Select the");
+                lcd.setCursor(0,1);
+                lcd.print("SetPoint: ");
+                lcd.setCursor(10,1);
+                SetPoint = SetPoint + 10;
+                lcd.print(SetPoint);
+                delay(100);
+            }
+            if (buttons & BUTTON_SELECT) 
+            {
+                Select = 1;
+                lcd.setBacklight(GREEN);
+                lcd.clear();
+                lcd.setCursor(3,0);
+                lcd.print("Thank you! ");
+                           
+                delay(2500);    
+            }
+        }  //if buttons
+    
+     }//while Select = 0
+     
+       // feugei otan exei parei to setpoint kai to select einai 1
+   
+       //------------------- SET POINT END ----------------------------------------
+ 
+       // tora prepei na parei to defrost
+    
+    if (Select == 1)
+     {
+           lcd.clear();
+           lcd.setBacklight(TEAL);
+           lcd.print("Select the");
+           lcd.setCursor(0,1);
+           lcd.print("Defrost Time: ");
+           lcd.setCursor(14,1); 
+     }
+     
+           while (Select == 1)  // select 1 = Defrost Time
+          {
+                uint8_t buttons = lcd.readButtons(); 
+               
+                if (buttons) 
+                {
+                      if (buttons & BUTTON_UP) 
+                      {
+                          lcd.clear();
+                          lcd.setBacklight(TEAL);
+                          lcd.print("Select the");
+                          lcd.setCursor(0,1);
+                          lcd.print("Defrost Time: ");
+                          lcd.setCursor(14,1);
+                          DefrostTime++;
+                          lcd.print(DefrostTime);
+                          delay(100);
+                      }
+                      if (buttons & BUTTON_DOWN) 
+                      {
+                          lcd.clear();
+                          lcd.print("Select the");
+                          lcd.setBacklight(TEAL);
+                          lcd.setCursor(0,1);
+                          lcd.print("Defrost Time: ");
+                          lcd.setCursor(14,1);
+                          DefrostTime--;
+                          lcd.print(DefrostTime);
+                          delay(100);    
+                      }
+                      if (buttons & BUTTON_LEFT) 
+                      {
+                          lcd.clear();
+                          lcd.print("Select the");
+                          lcd.setBacklight(TEAL);
+                          lcd.setCursor(0,1);
+                          lcd.print("Defrost Time: ");
+                          lcd.setCursor(13,1);
+                          DefrostTime=DefrostTime-10;
+                          lcd.print(DefrostTime);
+                          delay(100);    
+                      }
+                      if (buttons & BUTTON_RIGHT) 
+                      {
+                          lcd.clear();
+                          lcd.print("Select the");
+                          lcd.setBacklight(TEAL);
+                          lcd.setCursor(0,1);
+                          lcd.print("Defrost Time: ");
+                          lcd.setCursor(13,1);
+                          DefrostTime=DefrostTime+10;
+                          lcd.print(DefrostTime);
+                          delay(100);    
+                      }
+                      if (buttons & BUTTON_SELECT) 
+                      {
+                          Select = 2;
+                          lcd.setBacklight(GREEN);
+                          lcd.clear();
+                          lcd.setCursor(3,0);
+                          lcd.print("Thank you! ");
+                                     
+                          delay(2500);    
+                      }
+                }  //if buttons
+            
+         }//while defrost
+         
+         
+     // ------------- D E F R O S T    E N D   ------------------
+     
+     // ------ H I G H    T E M P E R A T U R E    ----------------
+     
+       if (Select == 2)
+         {  lcd.clear();
+           lcd.setBacklight(RED);
+           lcd.print("Select the High");
+           lcd.setCursor(0,1);
+           lcd.print("Temperature: ");
+           lcd.setCursor(14,1);
+            
+         }
+     
+     while (Select == 2 )
+     {
+       uint8_t buttons = lcd.readButtons(); 
+               
+                if (buttons) 
+                {
+                      if (buttons & BUTTON_UP) 
+                      {
+                          lcd.clear();
+                          lcd.setBacklight(RED);
+                          lcd.print("Select the High");
+                          lcd.setCursor(0,1);
+                          lcd.print("Temperature: ");
+                          lcd.setCursor(14,1);
+                          TempHigh++;
+                          lcd.print(TempHigh);
+                          delay(100);
+                      }
+                      if (buttons & BUTTON_DOWN) 
+                      {
+                          lcd.clear();
+                          lcd.setBacklight(RED);
+                          lcd.print("Select the High");
+                          lcd.setCursor(0,1);
+                          lcd.print("Temperature: ");
+                          lcd.setCursor(14,1);
+                          TempHigh--;
+                          lcd.print(TempHigh);
+                          delay(100);    
+                      }
+                      if (buttons & BUTTON_LEFT) 
+                      {
+                          lcd.clear();
+                          lcd.setBacklight(RED);
+                          lcd.print("Select the High");
+                          lcd.setCursor(0,1);
+                          lcd.print("Temperature: ");
+                          lcd.setCursor(13,1);
+                          TempHigh=TempHigh-10;
+                          lcd.print(TempHigh);
+                          delay(100);    
+                      }
+                      if (buttons & BUTTON_RIGHT) 
+                      {
+                          lcd.clear();
+                          lcd.setBacklight(RED);
+                          lcd.print("Select the High");
+                          lcd.setCursor(0,1);
+                          lcd.print("Temperature: ");
+                          lcd.setCursor(13,1);
+                          TempHigh=TempHigh+10;
+                          lcd.print(TempHigh);
+                          delay(100);    
+                      }
+                      if (buttons & BUTTON_SELECT) 
+                      {
+                          Select = 3;
+                          lcd.setBacklight(GREEN);
+                          lcd.clear();
+                          lcd.setCursor(3,0);
+                          lcd.print("Thank you! ");
+                                     
+                          delay(2500);    
+                      }
+                } // if buttons 
+     } // While 
+     
+     
+      // ------ H I G H    T E M P E R A T U R E   E N D ----------------
+     
+     // ------ L O W     T E M P E R A T U R E    ----------------
+     
+       if (Select == 3)
+      { 
+           lcd.clear();
+           lcd.setBacklight(TEAL);
+           lcd.print("Select the Low");
+           lcd.setCursor(0,1);
+           lcd.print("Temperature: ");
+           lcd.setCursor(14,1);
+            
+      }
+     
+     while (Select == 3 )
+     {
+       uint8_t buttons = lcd.readButtons(); 
+               
+                if (buttons) 
+                {
+                      if (buttons & BUTTON_UP) 
+                      {
+                           lcd.clear();
+                           lcd.setBacklight(TEAL);
+                           lcd.print("Select the Low");
+                           lcd.setCursor(0,1);
+                           lcd.print("Temperature: ");
+                           lcd.setCursor(14,1);
+                           TempLow++;  // +1 
+                           lcd.print(TempLow);
+                           delay(100);
+                      }
+                      if (buttons & BUTTON_DOWN) 
+                      {
+                           lcd.clear();
+                           lcd.setBacklight(TEAL);
+                           lcd.print("Select the Low");
+                           lcd.setCursor(0,1);
+                           lcd.print("Temperature: ");
+                           lcd.setCursor(14,1);
+                           TempLow--;  // -1
+                           lcd.print(TempLow);
+                           delay(100);    
+                      }
+                      if (buttons & BUTTON_LEFT) 
+                      {
+                           lcd.clear();
+                           lcd.setBacklight(TEAL);
+                           lcd.print("Select the Low");
+                           lcd.setCursor(0,1);
+                           lcd.print("Temperature: ");
+                           lcd.setCursor(13,1);
+                           TempLow=TempLow-10;
+                           lcd.print(TempLow);
+                           delay(100);    
+                      }
+                      if (buttons & BUTTON_RIGHT) 
+                      {
+                           lcd.clear();
+                           lcd.setBacklight(TEAL);
+                           lcd.print("Select the Low");
+                           lcd.setCursor(0,1);
+                           lcd.print("Temperature: ");
+                           lcd.setCursor(13,1);
+                           TempLow=TempLow+10;
+                           lcd.print(TempLow);
+                           delay(100);    
+                      }
+                      if (buttons & BUTTON_SELECT) 
+                      {
+                          Select = 4;
+                          lcd.setBacklight(GREEN);
+                          lcd.clear();
+                          lcd.setCursor(3,0);
+                          lcd.print("Thank you! ");
+                                     
+                          delay(2500);    
+                      }
+                } // if buttons 
+     } // While 
+     
+     
+      // ------ L O W   T E M P E R A T U R E   E N D ----------------
+      
+      // ------ D I F F E R E N T I A L  ---------------
+      
+      if (Select == 4)
+      {
+           lcd.clear();
+           lcd.setBacklight(YELLOW);
+           lcd.print("Select the ");
+           lcd.setCursor(0,1);
+           lcd.print("Differential: ");
+           lcd.setCursor(14,1);
+      }
+     while (Select == 4 )
+     {
+       uint8_t buttons = lcd.readButtons(); 
+               
+                if (buttons) 
+                {
+                      if (buttons & BUTTON_UP) 
+                      {
+                           lcd.clear();
+                           lcd.setBacklight(YELLOW);
+                           lcd.print("Select the ");
+                           lcd.setCursor(0,1);
+                           lcd.print("Differential: ");
+                           lcd.setCursor(14,1);
+                           Dif++; // +1
+                           lcd.print(Dif);
+                           delay(100);
+                      }
+                      if (buttons & BUTTON_DOWN) 
+                      {
+                           lcd.clear();
+                           lcd.setBacklight(YELLOW);
+                           lcd.print("Select the ");
+                           lcd.setCursor(0,1);
+                           lcd.print("Differential: ");
+                           lcd.setCursor(14,1);
+                           Dif--;  // -1
+                           lcd.print(Dif);
+                           delay(100);    
+                      }
+                      if (buttons & BUTTON_LEFT) 
+                      {
+                           lcd.clear();
+                           lcd.setBacklight(YELLOW);
+                           lcd.print("Select the");
+                           lcd.setCursor(0,1);
+                           lcd.print("Differential: ");
+                           lcd.setCursor(14,1);
+                           Dif=Dif-10;
+                           lcd.print(Dif);
+                           delay(100);    
+                      }
+                      if (buttons & BUTTON_RIGHT) 
+                      {
+                           lcd.clear();
+                           lcd.setBacklight(YELLOW);
+                           lcd.print("Select the");
+                           lcd.setCursor(0,1);
+                           lcd.print("Differential: ");
+                           lcd.setCursor(14,1);
+                           Dif=Dif+10;
+                           lcd.print(Dif);
+                           delay(100);    
+                      }
+                      if (buttons & BUTTON_SELECT) 
+                      {
+                          Select = 5;
+                          lcd.setBacklight(GREEN);
+                          lcd.clear();
+                          lcd.setCursor(3,0);
+                          lcd.print("Thank you! ");
+                                     
+                          delay(2500);    
+                      }
+                } // if buttons 
+                
+                //abc = SetPoint + Dif ;
+     } // While 
+     
+     
+     // ------ D I F F E R E N T I A L     E N D ---------------
+      
+     
+     tempC = analogRead(tempPin); // Παίρνω μέτρηση 
+        
+     tempC = (5.0*tempC*100.0)/1024.0; // Μετατρέπω σε Celcius
+     
+     
+          
+     while (Select == 5 && Door == 0 )//&& tempC < SetPoint) //  oso einai krya ta pragmata eimai edo 
+     {
+       
+               tempC = analogRead(tempPin); // Παίρνω μέτρηση
+                
+               tempC = (5.0*tempC*100.0)/1024.0;
+              
+               uint8_t buttons = lcd.readButtons();  // εδώ "ακούω" το αν πατήθηκε κουμπί
+              
+              
+              while (tempC < TempLow) // εδώ είναι το ALARM της χαμηλής θερμοκρασίας
+                  {
+                    
+                        digitalWrite(led, HIGH);   // sets the LED on
+                        
+                        digitalWrite(buzzer, HIGH);   // sets the LED on
+                        delay(50);                   // waits for a second
+                        digitalWrite(buzzer, LOW);    // sets the LED off
+                        delay(50);
+                        lcd.clear();
+                        lcd.setBacklight(RED);
+                        lcd.print ("A L A R M ! !");
+                        digitalWrite(buzzer, HIGH);   // sets the LED on
+                        delay(50);                   // waits for a second
+                        digitalWrite(buzzer, LOW);    // sets the LED off
+                        delay(50);
+                        delay(800);
+                        digitalWrite(buzzer, HIGH);   // sets the LED on
+                        delay(50);                   // waits for a second
+                        digitalWrite(buzzer, LOW);    // sets the LED off
+                        delay(50);
+                        lcd.clear();
+                        lcd.print("Temperature is");
+                        digitalWrite(buzzer, HIGH);   // sets the LED on
+                        delay(50);                   // waits for a second
+                        digitalWrite(buzzer, LOW);    // sets the LED off
+                        delay(50);
+                        lcd.setCursor(0,1);
+                        digitalWrite(buzzer, HIGH);   // sets the LED on
+                        delay(50);                   // waits for a second
+                        digitalWrite(buzzer, LOW);    // sets the LED off
+                        delay(50);
+                        lcd.print("too Low  ! ! !");
+                        digitalWrite(buzzer, HIGH);   // sets the LED on
+                        delay(50);                   // waits for a second
+                        digitalWrite(buzzer, LOW);    // sets the LED off
+                        delay(50);
+                        delay(1500);
+                        digitalWrite(buzzer, HIGH);   // sets the LED on
+                        delay(50);                   // waits for a second
+                        digitalWrite(buzzer, LOW);    // sets the LED off
+                        delay(50);
+                        
+                        tempC = analogRead(tempPin); // lm53 ----- // i krifi metrisi
+                        tempC = (5.0*tempC*100.0)/1024.0;
+              
+                  } // while A L A R M  */ 
+              
+              // εδώ αρχίζουμε να μετράμε τον χρόνο  
+              
+              int time = millis();
+              time = millis() - time;
+              int my = (millis()/1000); 
+              
+            //--------------------------------------------------------------------
+            
+            
+                       
+            // ---------- T I M E R   D E F R O S T  ----------------
+            
+            
+            
+            if (my % DefrostTime == 0) //  όταν το υπόλοιπο της διαίρεσης του χρόνυ , με αυτό που έχουμε ορίσει γίνει 0 , δηλαδή όταν πέσει ακριβώς πάνω στον χρόνο που θέλουμε εμείς
+            {
+               
+                      lcd.clear();
+                      lcd.setBacklight(TEAL);
+                      lcd.print("Timer Defrost ");
+                      lcd.setCursor(0,1);
+                      lcd.print("is: ON");
+                      digitalWrite(buzzer, HIGH);   // sets the LED on
+                      delay(50);                   // waits for a second
+                      digitalWrite(buzzer, LOW);    // sets the LED off
+                      delay(100);    
+                      delay(1500);               
+                    
+                      lcd.clear();
+                      lcd.setBacklight(RED);
+                      lcd.print("Comp is OFF");
+                      digitalWrite(buzzer, HIGH);   // sets the LED on
+                      delay(50);                   // waits for a second
+                      digitalWrite(buzzer, LOW);    // sets the LED off
+                      delay(100); 
+                      delay(1500);
+                      
+                      lcd.clear();
+                      lcd.setBacklight(RED);
+                      lcd.print("Fan is OFF");
+                      digitalWrite(buzzer, HIGH);   // sets the LED on
+                      delay(50);                   // waits for a second
+                      digitalWrite(buzzer, LOW);    // sets the LED off
+                      delay(100);
+                      delay(1500);
+                      
+                      lcd.clear();
+                      lcd.setBacklight(RED);
+                      lcd.print("Res is OFF");
+                      digitalWrite(buzzer, HIGH);   // sets the LED on
+                      delay(50);                   // waits for a second
+                      digitalWrite(buzzer, LOW);    // sets the LED off
+                      delay(100);
+                      delay(1500);
+                  
+              
+              }
+            
+            
+              
+              tempC = analogRead(tempPin); // Παίρνω μέτρηση
+        
+              tempC = (5.0*tempC*100.0)/1024.0;
+        
+  
+              // Αυτό εμφανίζει σε κανονικές συνθήκες      
+        
+              lcd.setBacklight(WHITE);
+              lcd.clear();
+              lcd.print("Current Temp is: ");
+              lcd.setCursor(0,1);
+              lcd.print("Celcius ");
+              lcd.setCursor(8,1);
+              lcd.print(tempC);
+              lcd.setCursor(10,1);
+              lcd.print((char)223);
+              lcd.setCursor(14, 1);
+              
+              // ένας τρόπος για να εμφανίζει μέχρι το 23 και μετά να μηδενίζει
+              // μία προσωμοίωση των ωρών 
+              
+              if (my > 23)
+               {
+                     lcd.setCursor(14, 1);
+                     my = my % 24;
+                     lcd.print(my);
+                     delay(250);
+               } 
+               else 
+               {  
+                lcd.print(my);
+              
+                delay(250); // Κάθε πότε παίρνει μέτρηση
+               }
+               
+               
+               // Κλείσμι του LED που έχει ανοίξει από τον συναγερμό θερμοκρασίας             
+              
+              if (buttons & BUTTON_UP)
+              {
+                digitalWrite(led, LOW);
+              
+              }
+              
+               // -------    A L A R M   Π Ο Ρ Τ Α Σ     ----------------
+              
+               
+              if (buttons & BUTTON_LEFT) // με το αριστερό κουμπί ανοίγει η πόρτα 
+              {   
+                  Door = 1; // door = 1 σημαίνει ότι άνοιξε
+                  
+                  digitalWrite(buzzer, HIGH);   // sets the LED on
+                  delay(50);                   // waits for a second
+                  digitalWrite(buzzer, LOW);    // sets the LED off
+                  delay(50);
+                  digitalWrite(buzzer, HIGH);   // sets the LED on
+                  delay(50);                   // waits for a second
+                  digitalWrite(buzzer, LOW);    // sets the LED off
+                  delay(50);
+                  
+                  
+                  while (Door == 1) // Όσο είναι ανοιχτή κάνε τα παρακάτω
+                  {
+                      uint8_t buttons = lcd.readButtons(); // Κοιτάζει αν είναι πατημένο κάποιο κουμπί
+                      
+                      lcd.setBacklight(YELLOW);
+                      lcd.clear();
+                      lcd.setCursor(0,0);
+                      lcd.print("Door has opened! ");
+                      digitalWrite(buzzer, HIGH);   // sets the LED on
+                      delay(50);                   // waits for a second
+                      digitalWrite(buzzer, LOW);    // sets the LED off
+                      delay(100);
+                      delay(1500);
+                      lcd.clear();
+                      lcd.setBacklight(RED);
+                      lcd.print("Comp is OFF");
+                      digitalWrite(buzzer, HIGH);   // sets the LED on
+                      delay(50);                   // waits for a second
+                      digitalWrite(buzzer, LOW);    // sets the LED off
+                      delay(100); 
+                      delay(1500);
+                      lcd.clear();
+                      lcd.setBacklight(RED);
+                      lcd.print("Fan is OFF");
+                      digitalWrite(buzzer, HIGH);   // sets the LED on
+                      delay(50);                   // waits for a second
+                      digitalWrite(buzzer, LOW);    // sets the LED off
+                      delay(100);
+                      delay(1500);
+                      lcd.clear();
+                      lcd.setBacklight(YELLOW);
+                      lcd.print("Lights are ON");
+                      digitalWrite(buzzer, HIGH);   // sets the LED on
+                      delay(50);                   // waits for a second
+                      digitalWrite(buzzer, LOW);    // sets the LED off
+                      delay(100);
+                      delay(1500);
+                                            
+                      if (buttons & BUTTON_LEFT)  // Κλείσιμο πόρτας ξανά με το LEFT
+                      {
+                          Door = 0 ;
+                          lcd.clear();
+                          lcd.print("Door is closed. ");
+                          delay(1000);
+                          digitalWrite(buzzer, HIGH);   // sets the LED on
+                          delay(800);                   // waits for a second
+                          digitalWrite(buzzer, LOW);    // sets the LED off
+                          delay(100);
+                          break;
+                      } // kleisimo
+                      
+                } // minimata me porta anoixti
+                
+            } // anoigma
+            
+            
+            
+            //---------------  MANUAL DEFROST  --------------            
+            
+            
+            if(buttons & BUTTON_RIGHT)
+            {
+           
+                  ManDef = 1;  
+           
+                  digitalWrite(buzzer, HIGH);   // sets the LED on
+                  delay(50);                   // waits for a second
+                  digitalWrite(buzzer, LOW);    // sets the LED off
+                  delay(50);
+                  digitalWrite(buzzer, HIGH);   // sets the LED on
+                  delay(50);                   // waits for a second
+                  digitalWrite(buzzer, LOW);    // sets the LED off
+                  delay(50);
+                  
+                  lcd.clear();
+                  lcd.setBacklight(TEAL);
+                  lcd.print("Manual Defrost");
+                  lcd.setCursor(0,1);
+                  lcd.print("is: ON");
+                  
+                  while (ManDef == 1)
+                  {
+                      uint8_t buttons = lcd.readButtons();
+                      
+                      lcd.clear();
+                      lcd.setBacklight(TEAL);
+                      lcd.print("Manual Defrost ");
+                      lcd.setCursor(0,1);
+                      lcd.print("is: ON");
+                      digitalWrite(buzzer, HIGH);   // sets the LED on
+                      delay(50);                   // waits for a second
+                      digitalWrite(buzzer, LOW);    // sets the LED off
+                      delay(100);    
+                      delay(1500);               
+                    
+                      lcd.clear();
+                      lcd.setBacklight(RED);
+                      lcd.print("Comp is OFF");
+                      digitalWrite(buzzer, HIGH);   // sets the LED on
+                      delay(50);                   // waits for a second
+                      digitalWrite(buzzer, LOW);    // sets the LED off
+                      delay(100); 
+                      delay(1500);
+                      
+                      lcd.clear();
+                      lcd.setBacklight(RED);
+                      lcd.print("Fan is OFF");
+                      digitalWrite(buzzer, HIGH);   // sets the LED on
+                      delay(50);                   // waits for a second
+                      digitalWrite(buzzer, LOW);    // sets the LED off
+                      delay(100);
+                      delay(1500);
+                      
+                      lcd.clear();
+                      lcd.setBacklight(RED);
+                      lcd.print("Res is OFF");
+                      digitalWrite(buzzer, HIGH);   // sets the LED on
+                      delay(50);                   // waits for a second
+                      digitalWrite(buzzer, LOW);    // sets the LED off
+                      delay(100);
+                      delay(1500);
+                      
+                                           
+                                                                  
+                      if (buttons & BUTTON_RIGHT)  // Kλείσιμο του manual Defrost
+                      {
+                          ManDef = 0 ;
+                          lcd.clear();
+                          lcd.print("Manual Defrost ");
+                          lcd.setCursor(0,1);
+                          lcd.print("has stopped.");
+                          delay(1000);
+                          digitalWrite(buzzer, HIGH);   // sets the LED on
+                          delay(800);                   // waits for a second
+                          digitalWrite(buzzer, LOW);    // sets the LED off
+                          delay(100);
+                          break;
+                      } // kleisimo defrost
+                  
+                  } // minimata defrost
+                  
+                  
+            } // anoigma defrost
+            
+        // telos ta krya pragmata     
+            
+            //-------------- A L A R M   T H E R M O K R A S I A S  ----------------
+         
+            
+            tempC = analogRead(tempPin); // Παίρνω μέτρηση
+            tempC = (5.0*tempC*100.0)/1024.0;
+            
+                     
+           
+           
+           // Εδώ ερχόμαστε όταν η tempC είναι πάνω από το επιθυμητό 
+            
+             while ( tempC  > SetPoint + Dif) // όσο είναι πάνω από το SetPoint , πρέπει να την ρίξουμε
+             {
+                  
+                  lcd.clear();  
+                  lcd.setBacklight(GREEN);
+                  lcd.setCursor(0,0);   
+                  lcd.print("Compressor: ON "); // Ανοίγει ο compressor
+                  Comp = 1;
+                  digitalWrite(buzzer, HIGH);   // sets the LED on
+                  delay(50);                   // waits for a second
+                  digitalWrite(buzzer, LOW);    // sets the LED off
+                  delay(100);
+          
+                  delay (1000);
+                  
+                  lcd.clear(); 
+                  lcd.setBacklight(GREEN);
+              
+                  lcd.setCursor(0,0);
+                  lcd.print("Fan: ON ");  // Ανοίγει o fan
+                  Fan = 1;
+                  digitalWrite(buzzer, HIGH);   // sets the LED on
+                  delay(50);                   // waits for a second
+                  digitalWrite(buzzer, LOW);    // sets the LED off
+                  delay(100);
+              
+                  delay (1000);
+              
+                  lcd.clear(); 
+              
+              
+                  tempC = analogRead(tempPin); // Παίρνω μέτρηση
+                  tempC = (5.0*tempC*100.0)/1024.0;
+              
+                 // Εδώ είναι η θερμοκρασία που έχει ενω δουλεύει και το μοτερ και ο ανεμιστήρας
+              
+                  lcd.print("Current Temp is: "); 
+                  lcd.setCursor(0,1);
+                  lcd.print("Celcius ");
+                  lcd.setCursor(8,1);
+                  lcd.print(tempC);
+                  lcd.setCursor(10,1);
+                  lcd.print((char)223);
+                  lcd.setCursor(14, 1);
+              
+                  delay (1500);
+              
+                  lcd.clear(); 
+              
+              
+                  tempC = analogRead(tempPin); // Παίρνω μέτρηση
+                  tempC = (5.0*tempC*100.0)/1024.0;
+                  
+                  
+                    
+                  
+                 // ----- Μ Ε Γ Α Λ Ο    A L A R M ! ! !  ----------------------          
+                 
+                 while (tempC > TempHigh)  // Όσο η τρέχουσα θερμοκρασία  είναι πάνω από την TempHigh
+                    
+                   {     
+                        digitalWrite(led, HIGH);   // sets the LED on
+                        
+                        digitalWrite(buzzer, HIGH);   // sets the LED on
+                        delay(50);                   // waits for a second
+                        digitalWrite(buzzer, LOW);    // sets the LED off
+                        delay(50);
+                        lcd.clear();
+                        lcd.setBacklight(RED);
+                        lcd.print ("A L A R M ! !");
+                        digitalWrite(buzzer, HIGH);   // sets the LED on
+                        delay(50);                   // waits for a second
+                        digitalWrite(buzzer, LOW);    // sets the LED off
+                        delay(50);
+                        delay(800);
+                        digitalWrite(buzzer, HIGH);   // sets the LED on
+                        delay(50);                   // waits for a second
+                        digitalWrite(buzzer, LOW);    // sets the LED off
+                        delay(50);
+                        lcd.clear();
+                        lcd.print("Temperature is");
+                        digitalWrite(buzzer, HIGH);   // sets the LED on
+                        delay(50);                   // waits for a second
+                        digitalWrite(buzzer, LOW);    // sets the LED off
+                        delay(50);
+                        lcd.setCursor(0,1);
+                        digitalWrite(buzzer, HIGH);   // sets the LED on
+                        delay(50);                   // waits for a second
+                        digitalWrite(buzzer, LOW);    // sets the LED off
+                        delay(50);
+                        lcd.print("too high ! ! !");
+                        digitalWrite(buzzer, HIGH);   // sets the LED on
+                        delay(50);                   // waits for a second
+                        digitalWrite(buzzer, LOW);    // sets the LED off
+                        delay(50);
+                        delay(1500);
+                        digitalWrite(buzzer, HIGH);   // sets the LED on
+                        delay(50);                   // waits for a second
+                        digitalWrite(buzzer, LOW);    // sets the LED off
+                        delay(50);
+                        
+                        tempC = analogRead(tempPin); // Παίρνω μέτρηση
+                        tempC = (5.0*tempC*100.0)/1024.0;
+              
+                  } // while A L A R M  */ 
+                  
+            }   //while thermokrasias - feugo mono otan epanelthei i thermokrasia ekei pou thelo
+            
+            // otan erthei , prepei na stamatisei o compressor omos
+            
+            // εδώ θα μπεί μόλις έχει πεσει η θερμοκρασία εκεί που θέλουμε , αλλά έχουν ενεργοποιηθεί 
+            // το μοτερ και ο ανεμιστήρας
+            // πρέπει να κλείσουμε  το μοτέρ
+            // και να αφήσουμε τον ανεμιστήρα
+            
+            if (Comp == 1 && Fan == 1 && tempC < SetPoint )
+            {
+                lcd.clear(); 
+
+                lcd.setBacklight(WHITE); 
+            
+                lcd.setCursor(0,0); 
+                lcd.print ("Now it's Cool again. . ."); // eimaste sto epithimito
+                delay(1500);
+                for (int positionCounter = 0; positionCounter < 24; positionCounter++) 
+                {
+                  lcd.scrollDisplayLeft(); 
+                  delay(300);
+                }    
+            
+                // kleinei  o compressor
+            
+                lcd.clear();
+            
+                lcd.setBacklight(RED);
+            
+                lcd.setCursor(0,0);   
+                lcd.print("Compressor: OFF");
+                Comp = 0;
+                digitalWrite(buzzer, HIGH);   // sets the LED on
+                delay(50);                   // waits for a second
+                digitalWrite(buzzer, LOW);    // sets the LED off
+                delay(100);
+            
+                delay (1000);
+            
+                // o Fan menei anoixtos
+            
+                lcd.clear();
+            
+                lcd.setBacklight(GREEN);
+            
+                lcd.setCursor(0,0);
+                lcd.print("Fan: ON ");
+                Fan = 1;
+                digitalWrite(buzzer, HIGH);   // sets the LED on
+                delay(50);                   // waits for a second
+                digitalWrite(buzzer, LOW);    // sets the LED off
+                delay(100);
+            
+                delay (1000);
+            
+                tempC = analogRead(tempPin); // lm53 -----
+                tempC = (5.0*tempC*100.0)/1024.0;
+            
+            } // if pou kleinei ton compressor 
+            
+             
+                
+            
+     }// while (Select == 2 && Door == 0 && tempC > SetPoint) 
+      
+      // Αυτό το σημείο είναι σε περίπτωση που κάτι δεν πάει καλά στον κώδικα
+      // Θα μας πετάξει εδω
+      // Σε κανονικές συνθήκες δεν το βλέπουμε ποτέ
+      
+      
+     //lcd.print("Debug mode"); 
+     //delay(1000);
+ 
+
+}//void loop
