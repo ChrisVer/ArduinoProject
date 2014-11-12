@@ -16,3 +16,6 @@ Temperature controller with optional:
 
 
 Also it simulates a 24H day. 
+
+watch demo at: 
+http://www.youtube.com/watch?v=jadSQwiD9zk&list=UUf-w209J5_yvCju20czrWEA
